@@ -1,0 +1,12 @@
+.kie-process-variables__tuple {
+    background-color: var(--pf-global--BackgroundColor--150);
+    padding: var(--pf-global--spacer--xs);
+}
+.kie-process-variables__label {
+    font-style: italic;
+}
+.pf-l-flex:not(.kie-process-variables__value) {
+    padding: var(--pf-global--spacer--sm);
+    border: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+    border-radius: var(--pf-global--BorderRadius--sm);
+}
