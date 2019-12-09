@@ -45,7 +45,8 @@ module.exports = {
           ),
           path.resolve(
             '../../node_modules/@patternfly/patternfly/assets/pficon'
-          )
+          ),
+          path.resolve('./src/static')
         ],
         use: {
           loader: 'file-loader',
@@ -81,18 +82,18 @@ module.exports = {
           options: {}
         }
       },
-      {
-        test: /\.svg$/,
-        include: input =>
-          input.indexOf(BG_IMAGES_DIRNAME) === -1 &&
-          input.indexOf('fonts') === -1 &&
-          input.indexOf('background-filter') === -1 &&
-          input.indexOf('pficon') === -1,
-        use: {
-          loader: 'raw-loader',
-          options: {}
-        }
-      },
+      // {
+      //   test: /\.svg$/,
+      //   include: input =>
+      //     input.indexOf(BG_IMAGES_DIRNAME) === -1 &&
+      //     input.indexOf('fonts') === -1 &&
+      //     input.indexOf('background-filter') === -1 &&
+      //     input.indexOf('pficon') === -1,
+      //   use: {
+      //     loader: 'raw-loader',
+      //     options: {}
+      //   }
+      // },
       {
         test: /\.(jpg|jpeg|png|gif)$/i,
         include: [
