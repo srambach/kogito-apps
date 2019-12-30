@@ -43,6 +43,7 @@ const DataListContainer: React.FC<{}> = () => {
         roles
         state
         start
+        lastUpdate
         addons
         endpoint
         error {
