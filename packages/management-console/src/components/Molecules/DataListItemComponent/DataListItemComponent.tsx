@@ -18,12 +18,9 @@ import {
   Bullseye,
   KebabToggle,
   Modal,
-  Alert,
-  TextContent,
-  TextVariants,
-  Text,
-  Flex,
-  FlexItem
+  Title,
+  TitleLevel,
+  BaseSizes
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import { useApolloClient } from 'react-apollo';
@@ -331,28 +328,24 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
         isSmall
         title=""
         header={
-          <div className="pf-l-flex pf-m-inline-flex">
-            <div className="pf-l-flex__item">
-              {alertType === 'success' ? (
-                <FontAwesomeIcon
-                  icon={faInfoCircle}
-                  size="lg"
-                  color="var(--pf-global--info-color--100)"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faTimesCircle}
-                  size="lg"
-                  color="var(--pf-global--danger-color--100)"
-                />
-              )}
-            </div>
-            <div className="pf-l-flex__item">
-              <TextContent>
-                <Text component={TextVariants.h1}>{modalTitle}</Text>
-              </TextContent>
-            </div>
-          </div>
+          <Title headingLevel={TitleLevel.h1} size={BaseSizes['2xl']}>
+            {alertType === 'success' ? (
+              <FontAwesomeIcon
+                icon={faInfoCircle}
+                size="sm"
+                color="var(--pf-global--info-color--100)"
+                className="pf-u-mr-md"
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faTimesCircle}
+                size="sm"
+                color="var(--pf-global--danger-color--100)"
+                className="pf-u-mr-md"
+              />
+            )}
+            {modalTitle}
+          </Title>
         }
         isOpen={isModalOpen}
         onClose={handleSmallModalToggle}
