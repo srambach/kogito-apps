@@ -49,6 +49,10 @@ app.get(
   '/management/processes/:processId/instances/:processInstanceId/retrigger',
   controller.callRetrigger
 );
+app.post(
+  '/management/processes/instances/:processInstanceIds/abortAll',
+  controller.callAbortAll
+);
 
 function timeout(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

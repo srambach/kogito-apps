@@ -11,7 +11,9 @@ import {
   Button,
   Select,
   SelectOption,
-  SelectVariant
+  SelectVariant,
+  Split,
+  SplitItem
 } from '@patternfly/react-core';
 import { FilterIcon, SyncIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
@@ -23,6 +25,11 @@ interface IOwnProps {
   setIsStatusSelected: any;
   filters: any;
   setFilters: any;
+  initData: any;
+  setInitData: any;
+  abortedObj: any;
+  setAbortedObj: any;
+  handleAbortAll: any;
 }
 const DataToolbarComponent: React.FC<IOwnProps> = ({
   checkedArray,
@@ -30,7 +37,9 @@ const DataToolbarComponent: React.FC<IOwnProps> = ({
   setCheckedArray,
   filters,
   setFilters,
-  setIsStatusSelected
+  setIsStatusSelected,
+  abortedObj,
+  handleAbortAll
 }) => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isFilterClicked, setIsFilterClicked] = useState<boolean>(false);
@@ -105,6 +114,7 @@ const DataToolbarComponent: React.FC<IOwnProps> = ({
   const onStatusToggle = isExpandedItem => {
     setIsExpanded(isExpandedItem);
   };
+
   const statusMenuItems = [
     <SelectOption key="ACTIVE" value="ACTIVE" />,
     <SelectOption key="COMPLETED" value="COMPLETED" />,
@@ -158,15 +168,36 @@ const DataToolbarComponent: React.FC<IOwnProps> = ({
   );
 
   return (
-    <DataToolbar
-      id="data-toolbar-with-filter"
-      className="pf-m-toggle-group-container"
-      collapseListedFiltersBreakpoint="xl"
-      clearAllFilters={() => clearAll()}
-      clearFiltersButtonText="Reset to default"
-    >
-      <DataToolbarContent>{toolbarItems}</DataToolbarContent>
-    </DataToolbar>
+    <Split>
+      <SplitItem>
+        {' '}
+        <DataToolbar
+          id="data-toolbar-with-filter"
+          className="pf-m-toggle-group-container"
+          collapseListedFiltersBreakpoint="xl"
+          clearAllFilters={() => clearAll()}
+          clearFiltersButtonText="Reset to default"
+        >
+          <DataToolbarContent>{toolbarItems}</DataToolbarContent>
+        </DataToolbar>
+      </SplitItem>
+      <SplitItem isFilled />
+      <SplitItem>
+        {Object.keys(abortedObj).length !== 0 ? (
+          <div className="pf-u-pr-md pf-u-pb-md pf-u-pt-lg">
+            <Button className="pf-u-float-right" onClick={handleAbortAll}>
+              Abort all
+            </Button>
+          </div>
+        ) : (
+          <div className="pf-u-pr-md pf-u-pb-md pf-u-pt-lg">
+            <Button variant="primary" className="pf-u-float-right" isDisabled>
+              Abort all
+            </Button>
+          </div>
+        )}
+      </SplitItem>
+    </Split>
   );
 };
 

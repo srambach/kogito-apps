@@ -434,6 +434,7 @@ export type GetProcessInstancesQuery = { __typename?: 'Query' } & {
           | 'processId'
           | 'processName'
           | 'parentProcessInstanceId'
+          | 'rootProcessInstanceId'
           | 'roles'
           | 'state'
           | 'start'
@@ -547,6 +548,7 @@ export const GetProcessInstancesDocument = gql`
       processId
       processName
       parentProcessInstanceId
+      rootProcessInstanceId
       roles
       state
       start

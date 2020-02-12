@@ -25,7 +25,6 @@ import SpinnerComponent from '../../Atoms/SpinnerComponent/SpinnerComponent';
 import { useGetChildInstancesLazyQuery } from '../../../graphql/types';
 
 /* tslint:disable:no-string-literal */
-
 export interface IProcessInstanceError {
   nodeDefinitionId: string;
   message: string;
@@ -35,26 +34,36 @@ interface IProcessInstance {
   id: string;
   processId: string;
   parentProcessInstanceId: string | null;
+  rootProcessInstanceId: string | null;
   processName: string;
   start: string;
   state: string;
   addons: [string];
   endpoint: string;
   error: IProcessInstanceError;
+  isChecked: boolean;
 }
 export interface IOwnProps {
   id: number;
   processInstanceData: IProcessInstance;
+  initData: any;
+  setInitData: any;
+  loadingInitData: boolean;
+  abortedObj: any;
+  setAbortedObj: any;
 }
 
 const DataListItemComponent: React.FC<IOwnProps> = ({
-  processInstanceData
+  processInstanceData,
+  initData,
+  setInitData,
+  loadingInitData,
+  abortedObj,
+  setAbortedObj
 }) => {
   const [expanded, setexpanded] = useState([]);
   const [isOpen, setisOpen] = useState(false);
   const [isLoaded, setisLoaded] = useState(false);
-  const [isChecked, setisChecked] = useState(false);
-  const [childList, setChildList] = useState({});
   const [openModal, setOpenModal] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState('');
@@ -125,9 +134,6 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
   const onSelect = event => {
     setisOpen(isOpen ? false : true);
   };
-  const onCheckBoxClick = () => {
-    setisChecked(isChecked ? false : true);
-  };
 
   const onToggle = _isOpen => {
     setisOpen(_isOpen);
@@ -142,6 +148,16 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
   };
 
   const toggle = async _id => {
+    const copyOfInitData = { ...initData };
+    copyOfInitData.ProcessInstances.map(instance => {
+      if (instance.id === processInstanceData.id) {
+        if (instance.isOpen) {
+          instance.isOpen = false;
+        } else {
+          instance.isOpen = true;
+        }
+      }
+    });
     const index = expanded.indexOf(_id);
     const newExpanded =
       index >= 0
@@ -161,9 +177,61 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
     }
   };
 
+  const onCheckBoxClick = () => {
+    const copyOfInitData = { ...initData };
+    let copyOfAbortedObject = { ...abortedObj };
+    copyOfInitData.ProcessInstances.map(instanceData => {
+      if (instanceData.id === processInstanceData.id) {
+        if (instanceData.isChecked) {
+          if (abortedObj[instanceData.id] !== undefined) {
+            delete copyOfAbortedObject[instanceData.id];
+          }
+          instanceData.isChecked = false;
+        } else {
+          const tempObj = {};
+          tempObj[instanceData.id] = instanceData.processName;
+          copyOfAbortedObject = { ...copyOfAbortedObject, ...tempObj };
+          instanceData.isChecked = true;
+        }
+      }
+      if (instanceData.childDataList !== undefined) {
+        instanceData.childDataList.map(child => {
+          if (child.id === processInstanceData.id) {
+            if (child.isChecked) {
+              if (copyOfAbortedObject[child.id] !== undefined) {
+                delete copyOfAbortedObject[child.id];
+              }
+              child.isChecked = false;
+            } else {
+              const tempObj = {};
+              tempObj[child.id] = child.processName;
+              copyOfAbortedObject = { ...copyOfAbortedObject, ...tempObj };
+              child.isChecked = true;
+            }
+          }
+        });
+      }
+    });
+    setInitData(copyOfInitData);
+    setAbortedObj(copyOfAbortedObject);
+  };
+
   useEffect(() => {
-    if (data !== undefined) {
-      setChildList(data);
+    if (data !== undefined && !loading && !loadingInitData) {
+      data.ProcessInstances.map(instance => {
+        if (processInstanceData['isChecked']) {
+          instance['isChecked'] = true;
+        } else {
+          instance['isChecked'] = false;
+        }
+      });
+      const copyOfInitData = { ...initData };
+      copyOfInitData.ProcessInstances.map(instanceData => {
+        if (instanceData.id === processInstanceData.id) {
+          instanceData['childDataList'] = data.ProcessInstances;
+        }
+      });
+      setInitData(copyOfInitData);
       setisLoaded(true);
     }
   }, [data]);
@@ -213,7 +281,7 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
           <DataListCheck
             aria-labelledby="width-kie-datalist-item"
             name="width-kie-datalist-item"
-            checked={isChecked}
+            checked={processInstanceData['isChecked']}
             onChange={() => {
               onCheckBoxClick();
             }}
@@ -387,15 +455,25 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
           isHidden={!expanded.includes('kie-datalist-toggle')}
         >
           {isLoaded &&
-            childList['ProcessInstances'] !== undefined &&
-            childList['ProcessInstances'].map((child, index) => {
-              return (
-                <DataListItemComponent
-                  id={index}
-                  key={child.id}
-                  processInstanceData={child}
-                />
-              );
+            !loading &&
+            !loadingInitData &&
+            initData.ProcessInstances.map(instance => {
+              if (instance.id === processInstanceData.id) {
+                return instance.childDataList.map((child, index) => {
+                  return (
+                    <DataListItemComponent
+                      id={index}
+                      key={child.id}
+                      processInstanceData={child}
+                      initData={initData}
+                      setInitData={setInitData}
+                      loadingInitData={loading}
+                      abortedObj={abortedObj}
+                      setAbortedObj={setAbortedObj}
+                    />
+                  );
+                });
+              }
             })}
           {!isLoaded && (
             <Bullseye>

@@ -58,5 +58,19 @@ module.exports = controller = {
         res.status(500).send(error[0].skip);
         break;
     }
+  },
+  callAbortAll: (req, res) => {
+    const graphData = require('./graphql');
+    const processIds = req.params.processInstanceIds;
+    const listOfProcessInstanceId = processIds.toString().split(',');
+    if (listOfProcessInstanceId.length !== 0) {
+      listOfProcessInstanceId.map(id => {
+        const data = graphData.filter(data => {
+          return data.id === id;
+        });
+        data[0].state = 'ABORTED';
+      });
+      res.status(200).send('success');
+    }
   }
 };

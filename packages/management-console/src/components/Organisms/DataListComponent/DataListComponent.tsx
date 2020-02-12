@@ -15,13 +15,17 @@ interface IOwnProps {
   isLoading: boolean;
   setIsError: any;
   setIsLoading: any;
+  abortedObj: any;
+  setAbortedObj: any;
 }
 
 const DataListComponent: React.FC<IOwnProps> = ({
   initData,
   setInitData,
   isLoading,
-  setIsError
+  setIsError,
+  abortedObj,
+  setAbortedObj
 }) => {
   const {
     loading,
@@ -39,6 +43,13 @@ const DataListComponent: React.FC<IOwnProps> = ({
 
   useEffect(() => {
     setIsError(false);
+    setAbortedObj({});
+    if (!loading && data !== undefined) {
+      data.ProcessInstances.map((instance: any) => {
+        instance.isChecked = false;
+        instance.isOpen = false;
+      });
+    }
     setInitData(data);
   }, [data]);
 
@@ -82,6 +93,11 @@ const DataListComponent: React.FC<IOwnProps> = ({
               id={index}
               key={item.id}
               processInstanceData={item}
+              initData={initData}
+              setInitData={setInitData}
+              loadingInitData={loading}
+              abortedObj={abortedObj}
+              setAbortedObj={setAbortedObj}
             />
           );
         })}
