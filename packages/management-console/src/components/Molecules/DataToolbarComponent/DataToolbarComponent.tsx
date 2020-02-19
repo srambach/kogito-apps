@@ -157,6 +157,19 @@ const DataToolbarComponent: React.FC<IOwnProps> = ({
       <DataToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
         {toggleGroupItems}
       </DataToolbarToggleGroup>
+      <DataToolbarGroup>
+        <DataToolbarItem>
+          {Object.keys(abortedObj).length !== 0 ? (
+            <Button variant="secondary" onClick={handleAbortAll}>
+              Abort selected
+            </Button>
+          ) : (
+            <Button variant="secondary" isDisabled>
+              Abort selected
+            </Button>
+          )}
+        </DataToolbarItem>
+      </DataToolbarGroup>
       <DataToolbarGroup variant="icon-button-group">
         <DataToolbarItem>
           <Button variant="plain" onClick={onRefreshClick}>
@@ -168,36 +181,15 @@ const DataToolbarComponent: React.FC<IOwnProps> = ({
   );
 
   return (
-    <Split>
-      <SplitItem>
-        {' '}
-        <DataToolbar
-          id="data-toolbar-with-filter"
-          className="pf-m-toggle-group-container"
-          collapseListedFiltersBreakpoint="xl"
-          clearAllFilters={() => clearAll()}
-          clearFiltersButtonText="Reset to default"
-        >
-          <DataToolbarContent>{toolbarItems}</DataToolbarContent>
-        </DataToolbar>
-      </SplitItem>
-      <SplitItem isFilled />
-      <SplitItem>
-        {Object.keys(abortedObj).length !== 0 ? (
-          <div className="pf-u-pr-md pf-u-pb-md pf-u-pt-lg">
-            <Button className="pf-u-float-right" onClick={handleAbortAll}>
-              Abort all
-            </Button>
-          </div>
-        ) : (
-          <div className="pf-u-pr-md pf-u-pb-md pf-u-pt-lg">
-            <Button variant="primary" className="pf-u-float-right" isDisabled>
-              Abort all
-            </Button>
-          </div>
-        )}
-      </SplitItem>
-    </Split>
+    <DataToolbar
+      id="data-toolbar-with-filter"
+      className="pf-m-toggle-group-container"
+      collapseListedFiltersBreakpoint="xl"
+      clearAllFilters={() => clearAll()}
+      clearFiltersButtonText="Reset to default"
+    >
+      <DataToolbarContent>{toolbarItems}</DataToolbarContent>
+    </DataToolbar>
   );
 };
 
