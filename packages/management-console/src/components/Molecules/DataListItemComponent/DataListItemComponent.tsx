@@ -17,21 +17,28 @@ import {
   Bullseye,
   KebabToggle,
   Modal,
-  Alert,
   TextContent,
-  TextVariants,
   Text,
-  Flex,
-  FlexItem,
   Title,
   TitleLevel,
-  BaseSizes
+  BaseSizes,
+  Popover,
+  DataList
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import SpinnerComponent from '../../Atoms/SpinnerComponent/SpinnerComponent';
 import { useGetChildInstancesLazyQuery } from '../../../graphql/types';
 import EmptyStateComponent from '../../Atoms/EmptyStateComponent/EmptyStateComponent';
-
+import {
+  OnRunningIcon,
+  CheckCircleIcon,
+  BanIcon,
+  PausedIcon,
+  ErrorCircleOIcon,
+  ExclamationCircleIcon,
+  ExternalLinkAltIcon,
+  HistoryIcon
+} from '@patternfly/react-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 /* tslint:disable:no-string-literal */
@@ -55,7 +62,7 @@ interface IProcessInstance {
 export interface IOwnProps {
   id: number;
   processInstanceData: IProcessInstance;
-  checkedArray: string[]
+  checkedArray: string[];
 }
 
 const DataListItemComponent: React.FC<IOwnProps> = ({
@@ -72,6 +79,7 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState('');
   const [alertType, setAlertType] = useState(null);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const [getChildInstances, { loading, data }] = useGetChildInstancesLazyQuery({
     fetchPolicy: 'network-only'
@@ -80,12 +88,7 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
   const handleSmallModalToggle = () => {
     setIsModalOpen(!isModalOpen);
   };
-  const handleViewError = useCallback(
-    async (_processID, _instanceID, _endpoint) => {
-      setOpenModal(true);
-    },
-    []
-  );
+
   const onSelect = event => {
     setisOpen(isOpen ? false : true);
   };
@@ -97,51 +100,51 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
     setisOpen(_isOpen);
   };
 
-  const handleModalToggle = () => {
-    setOpenModal(!openModal);
-  };
-
-  const handleSkip = useCallback(async (_processID, _instanceID, _endpoint) => {
+  const handleSkip = useCallback((_processID, _instanceID, _endpoint) => {
     const processInstanceId = processInstanceData.id;
     const processId = processInstanceData.processId;
 
-    try {
-      await axios.post(
+    axios
+      .post(
         `${processInstanceData.endpoint}/management/processes/${processId}/instances/${processInstanceId}/skip`
-      );
-      setModalTitle('Skip operation');
-      setModalContent(
-        'Process execution has successfully skipped node which was in error state.'
-      );
-      setAlertType('success');
-      handleSmallModalToggle();
-    } catch (error) {
-      setModalTitle('Skip operation');
-      setModalContent(
-        `Process execution failed to skip node which is in error state. Message: ${JSON.stringify(
-          error.message
-        )}`
-      );
-      setAlertType('danger');
-      handleSmallModalToggle();
-    }
+      )
+      .then(() => {
+        setModalTitle('Skip operation');
+        setModalContent(
+          'Process execution has successfully skipped node which was in error state.'
+        );
+        setAlertType('success');
+        handleSmallModalToggle();
+      })
+      .catch(error => {
+        setModalTitle('Skip operation');
+        setModalContent(
+          `Process execution failed to skip node which is in error state. Message: ${JSON.stringify(
+            error.message
+          )}`
+        );
+        setAlertType('danger');
+        handleSmallModalToggle();
+      });
   }, []);
 
-  const handleRetry = useCallback(
-    async (_processID, _instanceID, _endpoint) => {
-      const processInstanceId = processInstanceData.id;
-      const processId = processInstanceData.processId;
-      try {
-        await axios.post(
-          `${processInstanceData.endpoint}/management/processes/${processId}/instances/${processInstanceId}/retrigger`
-        );
+  const handleRetry = useCallback((_processID, _instanceID, _endpoint) => {
+    const processInstanceId = processInstanceData.id;
+    const processId = processInstanceData.processId;
+
+    axios
+      .post(
+        `${processInstanceData.endpoint}/management/processes/${processId}/instances/${processInstanceId}/retrigger`
+      )
+      .then(() => {
         setModalTitle('Retry operation');
         setModalContent(
           `Process execution has successfully re-executed node which was in error state.`
         );
         setAlertType('success');
         handleSmallModalToggle();
-      } catch (error) {
+      })
+      .catch(error => {
         setModalTitle('Retry operation');
         setModalContent(
           `Process execution failed to re-execute node which is in error state. Message: ${JSON.stringify(
@@ -150,22 +153,64 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
         );
         setAlertType('danger');
         handleSmallModalToggle();
-      }
-    },
-    []
-  );
+      });
+  }, []);
+
+  const stateIconCreator = state => {
+    switch (state) {
+      case 'ACTIVE':
+        return (
+          <>
+            <OnRunningIcon className="pf-u-mr-sm" />
+            Active
+          </>
+        );
+      case 'COMPLETED':
+        return (
+          <>
+            <CheckCircleIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--success-color--100)"
+            />
+            Completed
+          </>
+        );
+      case 'ABORTED':
+        return (
+          <>
+            <BanIcon className="pf-u-mr-sm" />
+            Aborted
+          </>
+        );
+      case 'SUSPENDED':
+        return (
+          <>
+            <PausedIcon className="pf-u-mr-sm" />
+            Suspended
+          </>
+        );
+      case 'ERROR':
+        return (
+          <>
+            <ErrorCircleOIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--danger-color--100)"
+            />
+            Error
+          </>
+        );
+    }
+  };
 
   const handleAbortActiveInstances = useCallback(
     (processInstanceId, processId) => {
       axios
         .post(
-          `${processInstanceData.endpoint}/management/processes/${processId}/instances/${processInstanceId}`
+          `${processInstanceData.endpoint}/management/processes/${processId}/instances/${processInstanceId}/abort`
         )
         .then(() => {
           setModalTitle('Process aborted');
-          setModalContent(
-            `${processId} - process execution has been aborted.`
-          );
+          setModalContent(`${processId} - process execution has been aborted.`);
           setAlertType('success');
           processInstanceData.state = 'ABORTED';
           handleSmallModalToggle();
@@ -189,9 +234,9 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
     const newExpanded =
       index >= 0
         ? [
-          ...expanded.slice(0, index),
-          ...expanded.slice(index + 1, expanded.length)
-        ]
+            ...expanded.slice(0, index),
+            ...expanded.slice(index + 1, expanded.length)
+          ]
         : [...expanded, _id];
     setexpanded(newExpanded);
 
@@ -210,24 +255,6 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
       setisLoaded(true);
     }
   }, [data]);
-
-  const handleRetryButton = async () => {
-    setOpenModal(!openModal);
-    await handleRetry(
-      processInstanceData.processId,
-      processInstanceData.id,
-      processInstanceData.endpoint
-    );
-  };
-
-  const handleSkipButton = async () => {
-    setOpenModal(!openModal);
-    await handleSkip(
-      processInstanceData.processId,
-      processInstanceData.id,
-      processInstanceData.endpoint
-    );
-  };
 
   const dropDownList = () => {
     if (processInstanceData.addons.includes('process-management')) {
@@ -267,18 +294,6 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
             }
           >
             Abort
-          </DropdownItem>,
-          <DropdownItem
-            key={3}
-            onClick={() =>
-              handleViewError(
-                processInstanceData.processId,
-                processInstanceData.id,
-                processInstanceData.endpoint
-              )
-            }
-          >
-            View error
           </DropdownItem>
         ];
       } else {
@@ -297,20 +312,7 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
         ];
       }
     } else {
-      return [
-        <DropdownItem
-          key={1}
-          onClick={() =>
-            handleViewError(
-              processInstanceData.processId,
-              processInstanceData.id,
-              processInstanceData.endpoint
-            )
-          }
-        >
-          View error
-        </DropdownItem>
-      ];
+      return [];
     }
   };
 
@@ -329,13 +331,13 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
                 className="pf-u-mr-md"
               />
             ) : (
-                <FontAwesomeIcon
-                  icon={faTimesCircle}
-                  size="sm"
-                  color="var(--pf-global--danger-color--100)"
-                  className="pf-u-mr-md"
-                />
-              )}
+              <FontAwesomeIcon
+                icon={faTimesCircle}
+                size="sm"
+                color="var(--pf-global--danger-color--100)"
+                className="pf-u-mr-md"
+              />
+            )}
             {modalTitle}
           </Title>
         }
@@ -354,15 +356,14 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
       >
         <TextContent>
           <Text>
-            <strong>
-              {modalContent}
-            </strong>
+            <strong>{modalContent}</strong>
           </Text>
-          {!checkedArray.includes('ABORTED') &&
+          {!checkedArray.includes('ABORTED') && (
             <Text>
-              Note: The process status has been updated. The list may appear inconsistent until you refresh any applied filters.
+              Note: The process status has been updated. The list may appear
+              inconsistent until you refresh any applied filters.
             </Text>
-          }
+          )}
         </TextContent>
       </Modal>
       <DataListItem
@@ -389,136 +390,205 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
           <DataListItemCells
             dataListCells={[
               <DataListCell key={1}>
-                {processInstanceData.processName}
+                <Link to={'/ProcessInstances/' + processInstanceData.id}>
+                  <div className="pf-u-float-left">
+                    <strong>{processInstanceData.processName}</strong>
+                  </div>
+                </Link>
+                <a
+                  href={`${processInstanceData.endpoint}/management/processes/${processInstanceData.processId}/instances/${processInstanceData.id}`}
+                  target="_blank"
+                >
+                  <Button variant="link" className="pf-u-pt-0">
+                    <ExternalLinkAltIcon />
+                  </Button>
+                </a>
+              </DataListCell>,
+              <DataListCell key={4}>
+                {processInstanceData.state === 'ERROR' ? (
+                  <Popover
+                    headerContent={<div>Process error</div>}
+                    bodyContent={
+                      <div>
+                        {processInstanceData.error
+                          ? processInstanceData.error.message
+                          : 'No error message found'}
+                      </div>
+                    }
+                    shouldClose={() => {
+                      setIsPopoverOpen(false);
+                    }}
+                    isVisible={isPopoverOpen}
+                    footerContent={
+                      processInstanceData.addons.includes('process-management')
+                        ? [
+                            <Button
+                              key="confirm1"
+                              variant="secondary"
+                              onClick={() => {
+                                handleSkip(
+                                  processInstanceData.processId,
+                                  processInstanceData.id,
+                                  processInstanceData.endpoint
+                                );
+                                setIsPopoverOpen(false);
+                              }}
+                              className="pf-u-mr-sm"
+                            >
+                              Skip
+                            </Button>,
+                            <Button
+                              key="confirm2"
+                              variant="secondary"
+                              onClick={() => {
+                                handleSkip(
+                                  processInstanceData.processId,
+                                  processInstanceData.id,
+                                  processInstanceData.endpoint
+                                );
+                                setIsPopoverOpen(false);
+                              }}
+                              className="pf-u-mr-sm"
+                            >
+                              Retry
+                            </Button>,
+                            <Button
+                              key="confirm3"
+                              variant="primary"
+                              onClick={() => {
+                                setIsPopoverOpen(false);
+                              }}
+                            >
+                              Close
+                            </Button>
+                          ]
+                        : [
+                            <Button
+                              key="confirm3"
+                              variant="primary"
+                              onClick={() => {
+                                setIsPopoverOpen(false);
+                              }}
+                            >
+                              Close
+                            </Button>
+                          ]
+                    }
+                    position="auto"
+                  >
+                    <Button
+                      variant="link"
+                      isInline
+                      onClick={() => {
+                        setIsPopoverOpen(true);
+                      }}
+                    >
+                      {stateIconCreator(processInstanceData.state)}
+                    </Button>
+                  </Popover>
+                ) : (
+                  stateIconCreator(processInstanceData.state)
+                )}
               </DataListCell>,
               <DataListCell key={2}>
                 {processInstanceData.start ? (
-                  <Moment fromNow>{new Date(`${processInstanceData.start}`)}</Moment>
+                  <>
+                    Created{' '}
+                    <Moment fromNow>
+                      {new Date(`${processInstanceData.start}`)}
+                    </Moment>
+                  </>
                 ) : (
-                    ''
-                  )}
+                  ''
+                )}
               </DataListCell>,
               <DataListCell key={3}>
-                {processInstanceData.lastUpdate ? (<Moment fromNow>{new Date(`${processInstanceData.lastUpdate}`)}</Moment>) : ('')}
-              </DataListCell>,
-              <DataListCell key={4}>{processInstanceData.state}</DataListCell>
+                {processInstanceData.lastUpdate ? (
+                  <span>
+                    {' '}
+                    <HistoryIcon className="pf-u-mr-sm" /> Updated{' '}
+                    <Moment fromNow>
+                      {new Date(`${processInstanceData.lastUpdate}`)}
+                    </Moment>
+                  </span>
+                ) : (
+                  ''
+                )}
+              </DataListCell>
             ]}
           />
-
-          <DataListAction
-            aria-labelledby="kie-datalist-item kie-datalist-action"
-            id="kie-datalist-action"
-            aria-label="Actions"
-          >
-            <Link to={'/ProcessInstances/' + processInstanceData.id}>
-              <Button variant="secondary">Details</Button>
-            </Link>
-          </DataListAction>
           <DataListAction
             aria-labelledby="kie-datalist-item kie-datalist-action"
             id="kie-datalist-action"
             aria-label="Actions"
           >
             {processInstanceData.state === 'ERROR' ||
-              processInstanceData.state === 'ACTIVE' ||
-              processInstanceData.state === 'SUSPENDED' ? (
-                <Dropdown
-                  isPlain
-                  position={DropdownPosition.right}
-                  isOpen={isOpen}
-                  onSelect={onSelect}
-                  toggle={<KebabToggle onToggle={onToggle} />}
-                  dropdownItems={dropDownList()}
-                />
-              ) : (
-                <Dropdown
-                  isPlain
-                  position={DropdownPosition.right}
-                  isOpen={isOpen}
-                  onSelect={onSelect}
-                  toggle={<KebabToggle isDisabled onToggle={onToggle} />}
-                  dropdownItems={[]}
-                />
-              )}
-            <Modal
-              isLarge
-              title="Error"
-              isOpen={openModal}
-              onClose={handleModalToggle}
-              actions={
-                processInstanceData.addons.includes('process-management')
-                  ? [
-                    <Button
-                      key="confirm1"
-                      variant="secondary"
-                      onClick={handleSkipButton}
-                    >
-                      Skip
-                      </Button>,
-                    <Button
-                      key="confirm2"
-                      variant="secondary"
-                      onClick={handleRetryButton}
-                    >
-                      Retry
-                      </Button>,
-                    <Button
-                      key="confirm3"
-                      variant="primary"
-                      onClick={handleModalToggle}
-                    >
-                      Close
-                      </Button>
-                  ]
-                  : [
-                    <Button
-                      key="confirm3"
-                      variant="primary"
-                      onClick={handleModalToggle}
-                    >
-                      Close
-                      </Button>
-                  ]
-              }
-            >
-              {processInstanceData.error
-                ? processInstanceData.error.message
-                : 'No error message found'}
-            </Modal>
+            processInstanceData.state === 'ACTIVE' ||
+            processInstanceData.state === 'SUSPENDED' ? (
+              <Dropdown
+                isPlain
+                position={DropdownPosition.right}
+                isOpen={isOpen}
+                onSelect={onSelect}
+                toggle={
+                  <KebabToggle
+                    isDisabled={dropDownList().length === 0}
+                    onToggle={onToggle}
+                  />
+                }
+                dropdownItems={dropDownList()}
+              />
+            ) : (
+              <Dropdown
+                isPlain
+                position={DropdownPosition.right}
+                isOpen={isOpen}
+                onSelect={onSelect}
+                toggle={<KebabToggle isDisabled onToggle={onToggle} />}
+                dropdownItems={[]}
+              />
+            )}
           </DataListAction>
         </DataListItemRow>
         <DataListContent
           aria-label="Primary Content Details"
           id="kie-datalist-expand1"
           isHidden={!expanded.includes('kie-datalist-toggle')}
+          className="kogito-management-console__embedded-list pf-m-compact"
+          noPadding
         >
-          {isLoaded &&
-            childList['ProcessInstances'] !== undefined &&
-            childList['ProcessInstances'].map((child, index) => {
-              return (
-                <DataListItemComponent
-                  id={index}
-                  key={child.id}
-                  processInstanceData={child}
-                  checkedArray={checkedArray}
+          <DataList
+            aria-label="Child process instance list"
+            className="pf-m-compact"
+          >
+            {isLoaded &&
+              childList['ProcessInstances'] !== undefined &&
+              childList['ProcessInstances'].map((child, index) => {
+                return (
+                  <DataListItemComponent
+                    id={index}
+                    key={child.id}
+                    processInstanceData={child}
+                    checkedArray={checkedArray}
+                  />
+                );
+              })}
+            {isLoaded &&
+              childList['ProcessInstances'] !== undefined &&
+              childList['ProcessInstances'].length === 0 && (
+                <EmptyStateComponent
+                  iconType="infoCircleIcon"
+                  title="No child process instances"
+                  body="This process has no related sub processes"
                 />
-              );
-            })}
-          {isLoaded &&
-            childList['ProcessInstances'] !== undefined &&
-            childList['ProcessInstances'].length === 0 && (
-              <EmptyStateComponent
-                iconType="infoCircleIcon"
-                title="No child process instances"
-                body="This process has no related sub processes"
-              />
-            )}
+              )}
 
-          {!isLoaded && (
-            <Bullseye>
-              <SpinnerComponent spinnerText="Loading process instances..." />
-            </Bullseye>
-          )}
+            {!isLoaded && (
+              <Bullseye>
+                <SpinnerComponent spinnerText="Loading process instances..." />
+              </Bullseye>
+            )}
+          </DataList>
         </DataListContent>
       </DataListItem>
     </React.Fragment>

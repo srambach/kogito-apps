@@ -50,7 +50,7 @@ app.post(
   controller.callRetrigger
 );
 app.post(
-  '/management/processes/:processId/instances/:processInstanceId',
+  '/management/processes/:processId/instances/:processInstanceId/abort',
   controller.callAbort
 );
 

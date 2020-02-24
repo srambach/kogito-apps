@@ -829,7 +829,7 @@ module.exports = data = [
     processName: 'FlightBooking test 1',
     rootProcessInstanceId: '8035b580-6ae4-4aa8-9ec0-e18e19809e0b',
     roles: [],
-    state: 'COMPLETED',
+    state: 'SUSPENDED',
     endpoint: 'http://localhost:4000',
     addons: [],
     error: {
