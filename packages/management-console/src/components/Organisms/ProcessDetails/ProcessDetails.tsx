@@ -12,7 +12,15 @@ import {
   Tooltip
 } from '@patternfly/react-core';
 import React from 'react';
-import { LevelDownAltIcon, LevelUpAltIcon } from '@patternfly/react-icons';
+import {
+  LevelDownAltIcon,
+  LevelUpAltIcon,
+  OnRunningIcon,
+  CheckCircleIcon,
+  BanIcon,
+  PausedIcon,
+  ErrorCircleOIcon
+} from '@patternfly/react-icons';
 import { Link } from 'react-router-dom';
 
 interface IOwnProps {
@@ -20,6 +28,61 @@ interface IOwnProps {
   data: any;
 }
 const ProcessDetails: React.FC<IOwnProps> = ({ data, loading }) => {
+  const stateIconCreator = state => {
+    switch (state) {
+      case 'ACTIVE':
+        return (
+          <>
+            <OnRunningIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--info-color--200)"
+            />
+            Active
+          </>
+        );
+      case 'COMPLETED':
+        return (
+          <>
+            <CheckCircleIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--success-color--100)"
+            />
+            Completed
+          </>
+        );
+      case 'ABORTED':
+        return (
+          <>
+            <BanIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--danger-color--300)"
+            />
+            Aborted
+          </>
+        );
+      case 'SUSPENDED':
+        return (
+          <>
+            <PausedIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--warning-color--100)"
+            />
+            Suspended
+          </>
+        );
+      case 'Error':
+        return (
+          <>
+            <ErrorCircleOIcon
+              className="pf-u-mr-sm"
+              color="var(--pf-global--danger-color--100)"
+            />
+            Error
+          </>
+        );
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -36,7 +99,7 @@ const ProcessDetails: React.FC<IOwnProps> = ({ data, loading }) => {
           </FormGroup>
           <FormGroup label="State" fieldId="state">
             <Text component={TextVariants.p}>
-              {data.ProcessInstances[0].state}
+              {stateIconCreator(data.ProcessInstances[0].state)}
             </Text>
           </FormGroup>
           <FormGroup label="Id" fieldId="id">

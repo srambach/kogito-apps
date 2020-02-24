@@ -89,7 +89,43 @@ exports[`DataListItem component tests Snapshot tests 1`] = `
         dataListCells={
           Array [
             <DataListCell>
-              FlightBooking
+              <ForwardRef
+                to="/ProcessInstances/c54ca5b0-b975-46e2-a9a0-6a86bf7ac21e"
+              >
+                <div
+                  className="pf-u-float-left"
+                >
+                  FlightBooking
+                </div>
+              </ForwardRef>
+              <a
+                href="http://localhost:4000/management/processes/flightBooking/instances/c54ca5b0-b975-46e2-a9a0-6a86bf7ac21e"
+                target="_blank"
+              >
+                <Unknown
+                  variant="link"
+                >
+                  <ExternalLinkAltIcon
+                    className="pf-u-mb-xl"
+                    color="currentColor"
+                    noVerticalAlign={false}
+                    size="sm"
+                    title={null}
+                  />
+                </Unknown>
+              </a>
+            </DataListCell>,
+            <DataListCell>
+              <React.Fragment>
+                <CheckCircleIcon
+                  className="pf-u-mr-sm"
+                  color="var(--pf-global--success-color--100)"
+                  noVerticalAlign={false}
+                  size="sm"
+                  title={null}
+                />
+                Completed
+              </React.Fragment>
             </DataListCell>,
             <DataListCell>
               
@@ -101,28 +137,9 @@ exports[`DataListItem component tests Snapshot tests 1`] = `
                 render={[Function]}
               />
             </DataListCell>,
-            <DataListCell>
-              COMPLETED
-            </DataListCell>,
           ]
         }
       />
-      <DataListAction
-        aria-label="Actions"
-        aria-labelledby="kie-datalist-item kie-datalist-action"
-        className=""
-        id="kie-datalist-action"
-      >
-        <Link
-          to="/ProcessInstances/c54ca5b0-b975-46e2-a9a0-6a86bf7ac21e"
-        >
-          <Component
-            variant="secondary"
-          >
-            Details
-          </Component>
-        </Link>
-      </DataListAction>
       <DataListAction
         aria-label="Actions"
         aria-labelledby="kie-datalist-item kie-datalist-action"
@@ -142,31 +159,6 @@ exports[`DataListItem component tests Snapshot tests 1`] = `
             />
           }
         />
-        <Modal
-          actions={
-            Array [
-              <Unknown
-                onClick={[Function]}
-                variant="primary"
-              >
-                Close
-              </Unknown>,
-            ]
-          }
-          appendTo={<body />}
-          ariaDescribedById=""
-          className=""
-          hideTitle={false}
-          isFooterLeftAligned={false}
-          isLarge={true}
-          isOpen={false}
-          isSmall={false}
-          onClose={[Function]}
-          showClose={true}
-          title="Error"
-        >
-          Something went wrong
-        </Modal>
       </DataListAction>
     </DataListItemRow>
     <DataListContent
