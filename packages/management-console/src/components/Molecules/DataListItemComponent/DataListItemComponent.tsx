@@ -22,7 +22,8 @@ import {
   Title,
   TitleLevel,
   BaseSizes,
-  Popover
+  Popover,
+  DataList
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
 import SpinnerComponent from '../../Atoms/SpinnerComponent/SpinnerComponent';
@@ -399,18 +400,8 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
             dataListCells={[
               <DataListCell key={1}>
                 <Link to={'/ProcessInstances/' + processInstanceData.id}>
-                  <div className="pf-u-float-left">
-                    {processInstanceData.processName}
-                  </div>
+                  <div>{processInstanceData.processName}</div>
                 </Link>
-                <a
-                  href={`${processInstanceData.endpoint}/management/processes/${processInstanceData.processId}/instances/${processInstanceData.id}`}
-                  target="_blank"
-                >
-                  <Button variant="link">
-                    <ExternalLinkAltIcon className="pf-u-mb-xl" />
-                  </Button>
-                </a>
               </DataListCell>,
               <DataListCell key={4}>
                 {processInstanceData.state === 'ERROR' ? (
@@ -562,34 +553,41 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
           aria-label="Primary Content Details"
           id="kie-datalist-expand1"
           isHidden={!expanded.includes('kie-datalist-toggle')}
+          className="kogito-management-console__embedded-list pf-m-compact"
+          noPadding
         >
-          {isLoaded &&
-            childList['ProcessInstances'] !== undefined &&
-            childList['ProcessInstances'].map((child, index) => {
-              return (
-                <DataListItemComponent
-                  id={index}
-                  key={child.id}
-                  processInstanceData={child}
-                  checkedArray={checkedArray}
+          <DataList
+            aria-label="Child process instance list"
+            className="pf-m-compact"
+          >
+            {isLoaded &&
+              childList['ProcessInstances'] !== undefined &&
+              childList['ProcessInstances'].map((child, index) => {
+                return (
+                  <DataListItemComponent
+                    id={index}
+                    key={child.id}
+                    processInstanceData={child}
+                    checkedArray={checkedArray}
+                  />
+                );
+              })}
+            {isLoaded &&
+              childList['ProcessInstances'] !== undefined &&
+              childList['ProcessInstances'].length === 0 && (
+                <EmptyStateComponent
+                  iconType="infoCircleIcon"
+                  title="No child process instances"
+                  body="This process has no related sub processes"
                 />
-              );
-            })}
-          {isLoaded &&
-            childList['ProcessInstances'] !== undefined &&
-            childList['ProcessInstances'].length === 0 && (
-              <EmptyStateComponent
-                iconType="infoCircleIcon"
-                title="No child process instances"
-                body="This process has no related sub processes"
-              />
-            )}
+              )}
 
-          {!isLoaded && (
-            <Bullseye>
-              <SpinnerComponent spinnerText="Loading process instances..." />
-            </Bullseye>
-          )}
+            {!isLoaded && (
+              <Bullseye>
+                <SpinnerComponent spinnerText="Loading process instances..." />
+              </Bullseye>
+            )}
+          </DataList>
         </DataListContent>
       </DataListItem>
     </React.Fragment>

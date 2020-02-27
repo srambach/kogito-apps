@@ -1,0 +1,4 @@
+.kogito-management-console__embedded-list .pf-c-data-list__item-row::before
+ {
+    --pf-c-data-list__item--before--BackgroundColor: transparent;
+}      
