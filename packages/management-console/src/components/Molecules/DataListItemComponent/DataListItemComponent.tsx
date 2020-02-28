@@ -400,8 +400,18 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
             dataListCells={[
               <DataListCell key={1}>
                 <Link to={'/ProcessInstances/' + processInstanceData.id}>
-                  <div>{processInstanceData.processName}</div>
+                  <div>
+                    <strong>{processInstanceData.processName}</strong>
+                  </div>
                 </Link>
+                <Button
+                  component={'a'}
+                  variant={'link'}
+                  href={`${processInstanceData.endpoint}/management/processes/${processInstanceData.processId}/instances/${processInstanceData.id}`}
+                  isInline={true}
+                >
+                  Endpoint name{<ExternalLinkAltIcon className="pf-u-ml-xs" />}
+                </Button>
               </DataListCell>,
               <DataListCell key={4}>
                 {processInstanceData.state === 'ERROR' ? (
