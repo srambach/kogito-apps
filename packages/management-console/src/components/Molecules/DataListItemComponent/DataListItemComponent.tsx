@@ -555,7 +555,6 @@ const DataListItemComponent: React.FC<IOwnProps> = ({
           id="kie-datalist-expand1"
           isHidden={!expanded.includes('kie-datalist-toggle')}
           className="kogito-management-console__embedded-list pf-m-compact"
-          noPadding
         >
           <DataList
             aria-label="Child process instance list"
