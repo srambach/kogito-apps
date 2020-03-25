@@ -13,7 +13,8 @@ import {
   Stack,
   Dropdown,
   KebabToggle,
-  DropdownItem
+  DropdownItem,
+  Tooltip
 } from '@patternfly/react-core';
 import {
   ServicesIcon,
@@ -62,18 +63,22 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
                   <SplitItem>
                     {
                       <>
-                        {/* <OnRunningIcon
-                          className="kogito-management-console--timeline-status"
-                          /> */}
                         {/* TODO: put the correct icon in depending on the state */}
-                        <CheckCircleIcon
-                          color="var(--pf-global--success-color--100)"
-                          className="kogito-management-console--timeline-status"
-                        />
-                        {/* <ErrorCircleOIcon
-                          color="var(--pf-global--danger-color--100)"
-                          className="kogito-management-console--timeline-status"
-                        /> */}
+                        {/* <Tooltip content={'Active'}>
+                            <OnRunningIcon className="kogito-management-console--timeline-status" />{' '}
+                          </Tooltip> */}
+                        <Tooltip content={'Completed'}>
+                          <CheckCircleIcon
+                            color="var(--pf-global--success-color--100)"
+                            className="kogito-management-console--timeline-status"
+                          />
+                        </Tooltip>
+                        {/* <Tooltip content={'Error'}>
+                            <ErrorCircleOIcon
+                              color="var(--pf-global--danger-color--100)"
+                              className="kogito-management-console--timeline-status"
+                            />
+                          </Tooltip> */}
                       </>
                     }
                   </SplitItem>
@@ -83,15 +88,19 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
                         {content.name}
                         <span>
                           {content.type === 'HumanTaskNode' ? (
-                            <UserIcon
-                              className="pf-u-ml-sm"
-                              color="var(--pf-global--icon--Color--light)"
-                            />
-                          ) : (
-                              <ServicesIcon
+                            <Tooltip content={'Human task'}>
+                              <UserIcon
                                 className="pf-u-ml-sm"
                                 color="var(--pf-global--icon--Color--light)"
                               />
+                            </Tooltip>
+                          ) : (
+                              <Tooltip content={'Service'}>
+                                <ServicesIcon
+                                  className="pf-u-ml-sm"
+                                  color="var(--pf-global--icon--Color--light)"
+                                />
+                              </Tooltip>
                             )}
                         </span>
                         <Text component={TextVariants.small}>
