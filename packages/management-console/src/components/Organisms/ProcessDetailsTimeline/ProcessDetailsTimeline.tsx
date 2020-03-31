@@ -23,26 +23,44 @@ import {
   ErrorCircleOIcon,
   OnRunningIcon
 } from '@patternfly/react-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import './ProcessDetailsTimeline.css';
-import SpinnerComponent from '../../Atoms/SpinnerComponent/SpinnerComponent';
+import { ProcessInstance } from '../../../graphql/types';
 
 export interface IOwnProps {
-  data: any;
+  data: Pick<
+    ProcessInstance,
+    'id' | 'nodes' | 'addons' | 'error' | 'serviceUrl'
+  >;
+  handleSkip: () => void;
+  handleRetry: () => void;
 }
 
-// TODO: make the kebab menu for each timeline item work!
-// const { isOpen } = this.state;
-const dropdownItems = [
-  <DropdownItem key="retry" component="button">
-    Retry
-  </DropdownItem>,
-  <DropdownItem key="skip" component="button">
-    Skip
-  </DropdownItem>
-];
+const ProcessDetailsTimeline: React.FC<IOwnProps> = ({
+  data,
+  handleRetry,
+  handleSkip
+}) => {
+  const [isKebabOpen, setIsKebabOpen] = useState(false);
 
-const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
+  // TODO: make the kebab menu for each timeline item work!
+  // const { isOpen } = this.state;
+  const dropdownItems = [
+    <DropdownItem key="retry" component="button" onClick={handleRetry}>
+      Retry
+    </DropdownItem>,
+    <DropdownItem key="skip" component="button" onClick={handleSkip}>
+      Skip
+    </DropdownItem>
+  ];
+
+  const onKebabToggle = isOpen => {
+    setIsKebabOpen(isOpen);
+  };
+
+  const onDropdownSelect = event => {
+    setIsKebabOpen(!isKebabOpen);
+  };
   return (
     <Card>
       <CardHeader>
@@ -52,8 +70,8 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
       </CardHeader>
       <CardBody>
         <Stack gutter="md" className="kogito-management-console--timeline">
-          {
-            data[0].nodes.map(content => {
+          {data.nodes &&
+            data.nodes.map(content => {
               return (
                 <Split
                   gutter={'sm'}
@@ -67,18 +85,32 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
                         {/* <Tooltip content={'Active'}>
                             <OnRunningIcon className="kogito-management-console--timeline-status" />{' '}
                           </Tooltip> */}
-                        <Tooltip content={'Completed'}>
+                        {/* <Tooltip content={'Completed'}>
                           <CheckCircleIcon
                             color="var(--pf-global--success-color--100)"
                             className="kogito-management-console--timeline-status"
                           />
-                        </Tooltip>
-                        {/* <Tooltip content={'Error'}>
+                        </Tooltip> */}
+                        {data.error &&
+                        content.definitionId === data.error.nodeDefinitionId ? (
+                          <Tooltip content={data.error.message}>
                             <ErrorCircleOIcon
                               color="var(--pf-global--danger-color--100)"
                               className="kogito-management-console--timeline-status"
                             />
-                          </Tooltip> */}
+                          </Tooltip>
+                        ) : content.exit === null ? (
+                          <Tooltip content={'Active'}>
+                            <OnRunningIcon className="kogito-management-console--timeline-status" />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip content={'Completed'}>
+                            <CheckCircleIcon
+                              color="var(--pf-global--success-color--100)"
+                              className="kogito-management-console--timeline-status"
+                            />
+                          </Tooltip>
+                        )}
                       </>
                     }
                   </SplitItem>
@@ -87,30 +119,23 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
                       <Text component={TextVariants.p}>
                         {content.name}
                         <span>
-                          {content.type === 'HumanTaskNode' ? (
+                          {content.type === 'HumanTaskNode' && (
                             <Tooltip content={'Human task'}>
                               <UserIcon
                                 className="pf-u-ml-sm"
                                 color="var(--pf-global--icon--Color--light)"
                               />
                             </Tooltip>
-                          ) : (
-                              <Tooltip content={'Service'}>
-                                <ServicesIcon
-                                  className="pf-u-ml-sm"
-                                  color="var(--pf-global--icon--Color--light)"
-                                />
-                              </Tooltip>
-                            )}
+                          )}
                         </span>
                         <Text component={TextVariants.small}>
                           {content.exit === null ? (
                             'Active'
                           ) : (
-                              <Moment fromNow>
-                                {new Date(`${content.exit}`)}
-                              </Moment>
-                            )}
+                            <Moment fromNow>
+                              {new Date(`${content.exit}`)}
+                            </Moment>
+                          )}
                         </Text>
                       </Text>
                     </TextContent>
@@ -119,26 +144,39 @@ const ProcessDetailsTimeline: React.FC<IOwnProps> = ({ data }) => {
                     {
                       <>
                         {/* TODO: Make the dropdown work, with contents depending on the state */}
-                        <Dropdown
-                          // onSelect={this.onSelect}
-                          toggle={
-                            <KebabToggle
-                            // onToggle={this.onToggle}
-                            // id="toggle-id-6"
-                            />
-                          }
-                          // isOpen={isOpen}
-                          isPlain
-                        // dropdownItems={dropdownItems}
-                        />
+                        {data.addons.includes('process-management') &&
+                        data.serviceUrl !== null &&
+                        data.error &&
+                        content.definitionId === data.error.nodeDefinitionId ? (
+                          <Dropdown
+                            onSelect={onDropdownSelect}
+                            toggle={
+                              <KebabToggle
+                                onToggle={onKebabToggle}
+                                id="kebab-toggle"
+                              />
+                            }
+                            isOpen={isKebabOpen}
+                            isPlain
+                            dropdownItems={dropdownItems}
+                          />
+                        ) : (
+                          <Dropdown
+                            toggle={
+                              <KebabToggle
+                                isDisabled
+                                id="kebab-toggle-disabled"
+                              />
+                            }
+                            isPlain
+                          />
+                        )}
                       </>
                     }
                   </SplitItem>{' '}
                 </Split>
               );
-            })
-
-          }
+            })}
         </Stack>
       </CardBody>
     </Card>
